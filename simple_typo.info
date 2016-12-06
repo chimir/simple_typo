@@ -1,0 +1,3 @@
+name = Simple Typo
+description = Allows users to report typos found in site content.
+core = 7.x

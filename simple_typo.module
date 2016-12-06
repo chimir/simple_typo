@@ -1,0 +1,125 @@
+<?php
+/**
+ * @file
+ * A description of what your module does.
+ */
+
+/**
+ * Implements hook_form().
+ */
+function simple_typo_form($form_state, &$form_submit) {
+
+  $form['comment'] = array(
+    '#title' => t('Comment'),
+    '#type' => 'textarea',
+    '#resizable' => false,
+  );
+
+  $form['text'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+    '#attributes' => array('id' => 'simple-typo-text'),
+  );
+
+  $form['url'] = array(
+    '#type' => 'hidden',
+    '#value' => url(current_path(), array('absolute' => true)),
+    '#attributes' => array('id' => 'simple-typo-url'),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#ajax' => array('callback' => 'simple_typo_form_ajax_submit'),
+  );
+
+  return $form;
+}
+
+function simple_typo_form_ajax_submit($form, &$form_state) {
+  $commands = array();
+  if (!empty($form_state['executed'])) {
+    $form['comment']['#value'] = '';
+  }
+  $commands[] = ajax_command_replace('#simple-typo-form', drupal_render($form));
+  $commands[] = ajax_command_css('.simple-typo-body',  array('display' => 'none'));
+  //$commands[] = ajax_command_append('#simple-typo', theme('status_messages'));
+  $commands[] = array('command' => 'simple_typo', 'message' => theme('status_messages'));
+  $commands[] = ajax_command_invoke(NULL, 'simple_typo_js_callback');
+
+  return array(
+    '#type' => 'ajax',
+    '#commands' => $commands,
+  );
+}
+
+/**
+ * Form submit.
+ */
+function simple_typo_form_submit($form, &$form_state) {
+  $comment = $form_state['values']['comment'];
+  $text = $form_state['values']['text'];
+  $url = $form_state['values']['url'];
+
+  $message = t('URL path:') . ' ' . $url . "\r\n";
+  $message .= t('Comment:') . ' ' . $comment . "\r\n";
+  $message .= t('Typo:') . ' ' . $text;
+
+  drupal_mail('system', 'mail', variable_get('site_mail'), language_default(), array(
+    'context' => array(
+      'subject' => t('Spelling error.'),
+      'message' => $message,
+    )
+  ));
+
+  drupal_set_message(t('Message has been successfully sent.'));
+}
+
+/**
+ * Implements hook_permission().
+ */
+function simple_typo_permission() {
+  return array(
+    'may send typo reports' => array(
+      'title' => t('User may send typo reports'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function simple_typo_theme() {
+  return array(
+    'simple_typo' => array(
+      'template' => 'templates/simple-typo-default',
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_hook():simple_typo.
+ */
+function simple_typo_preprocess_simple_typo(&$vars) {
+  $form = drupal_get_form('simple_typo_form');
+
+  $vars['simple_typo_form'] = drupal_render($form);
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function simple_typo_page_build(&$page) {
+  if (user_access('may send typo reports')) {
+    $path = drupal_get_path('module', 'simple_typo');
+
+    $page['page_bottom']['simple_typo']['#markup'] = theme('simple_typo');
+    $page['page_bottom']['simple_typo']['#attached'] = array(
+      'js' => array(
+        $path . '/js/simple-typo-default.js',
+        $path . '/js/simple-typo.selection.js'
+      ),
+      'css' => array($path . '/css/simple-typo-default.css'),
+    );
+  }
+}

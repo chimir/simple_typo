@@ -1,0 +1,60 @@
+#simple-typo {
+  position: fixed;
+  display: none;
+  width: 480px;
+  background-color: #efefef;
+  padding: 30px;
+}
+
+#simple-typo.open {
+  display: block;
+  z-index: 150;
+  left: 50%;
+  top: 79px;
+  margin-left: -240px;
+}
+
+#simple-typo.open + .overlay {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, .5);
+}
+
+#simple-typo .simple-typo-close {
+  position: absolute;
+  right: 30px;
+  top: 30px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#simple-typo .simple-typo-title {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+#simple-typo .messages {
+  margin: 10px 0 0;
+}
+
+#simple-typo-text-div {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+#simple-typo-text-div strong{
+  color: #D80232;
+  text-decoration: underline;
+}
+
+#simple-typo textarea {
+  resize:none;
+}
